@@ -1,0 +1,151 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Employee {
+  id                String        @id @default(uuid())
+  matricule         Int?          @unique
+  nom               String
+  prenom            String
+  dateNaissance     DateTime
+  sexe              Sexe
+  nationalite       String
+  adresse           String
+  complementAdresse String?
+  codePostal        String
+  ville             String
+  iban              String
+  bic               String
+  securiteSociale   String
+  urgenceNom        String
+  urgencePrenom     String
+  urgenceTel        String
+  moyenTransport    String?
+  dateCreation      DateTime      @default(now())
+  dateMiseAJour     DateTime      @updatedAt
+  actif             Boolean       @default(true)
+  contracts         Contract[]
+  timeEntries       TimeEntry[]
+  payVariables      PayVariable[]
+}
+
+enum Sexe {
+  homme
+  femme
+  autre
+}
+
+model Contract {
+  id                     String         @id @default(uuid())
+  employeeId             String
+  employee               Employee       @relation(fields: [employeeId], references: [id])
+  type                   TypeContrat
+  role                   Role
+  heuresContrat          Float
+  statut                 StatutContrat
+  dateDebut              DateTime
+  dateFin                DateTime?
+  dateDemissionEffective DateTime?
+  dateSuppressionPrevue  DateTime?
+  dateCreation           DateTime       @default(now())
+  dateMiseAJour          DateTime       @updatedAt
+  amendments             Amendment[]
+  availabilities         Availability[]
+}
+
+enum TypeContrat {
+  CDI
+  CDD
+  Autre
+}
+
+enum Role {
+  employe_polyvalent
+  responsable
+  assistant_manager
+  manager
+}
+
+enum StatutContrat {
+  en_contrat
+  demission
+}
+
+model Amendment {
+  id            String      @id @default(uuid())
+  contractId    String
+  contract      Contract    @relation(fields: [contractId], references: [id])
+  type          TypeAvenant
+  dateDebut     DateTime
+  dateFin       DateTime?
+  role          Role?
+  heuresContrat Float?
+  dateCreation  DateTime    @default(now())
+  dateMiseAJour DateTime    @updatedAt
+}
+
+enum TypeAvenant {
+  avenant
+  modif_permanente
+}
+
+model Availability {
+  id            String   @id @default(uuid())
+  contractId    String
+  contract      Contract @relation(fields: [contractId], references: [id])
+  jour          Jour
+  plages        Json // Ex: [{"start": "09:00", "end": "13:00"}]
+  dateCreation  DateTime @default(now())
+  dateMiseAJour DateTime @updatedAt
+}
+
+enum Jour {
+  lundi
+  mardi
+  mercredi
+  jeudi
+  vendredi
+  samedi
+  dimanche
+}
+
+model TimeEntry {
+  id          String        @id @default(uuid())
+  employeeId  String
+  employee    Employee      @relation(fields: [employeeId], references: [id])
+  planningId  String?
+  date        DateTime
+  heureEntree String // Stockage hh:mm
+  heureSortie String
+  type        TypeTimeEntry
+  createdAt   DateTime      @default(now())
+}
+
+enum TypeTimeEntry {
+  planifie
+  reel
+}
+
+model Planning {
+  id        String   @id @default(uuid())
+  semaine   DateTime // Premier jour de la semaine (ISO)
+  label     String
+  createdAt DateTime @default(now())
+}
+
+model PayVariable {
+  id                String   @id @default(uuid())
+  employeeId        String
+  employee          Employee @relation(fields: [employeeId], references: [id])
+  periodeDebut      DateTime
+  periodeFin        DateTime
+  heuresTravaillees Float
+  absences          Float
+  heuresSupp        Float
+  createdAt         DateTime @default(now())
+}
