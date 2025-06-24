@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { amendmentSchema } from '../../contracts/schema';
+import { amendmentCreateSchema } from '../../../../contracts/schema';
 import { z } from 'zod';
+
 
 export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
   try {
@@ -16,7 +17,7 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
 export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
   try {
     const raw = await req.json();
-    const parsed = amendmentSchema.parse(raw);
+    const parsed = amendmentCreateSchema.parse(raw);
     const amendment = await prisma.amendment.update({
       where: { id: params.id },
       data: parsed,
