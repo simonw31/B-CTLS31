@@ -30,20 +30,13 @@ model Employee {
   dateMiseAJour     DateTime      @updatedAt
   actif             Boolean       @default(true)
   contracts         Contract[]
-  timeEntries       TimeEntry[]
   payVariables      PayVariable[]
-}
-
-enum Sexe {
-  homme
-  femme
-  autre
+  timeEntries       TimeEntry[]
 }
 
 model Contract {
   id                     String         @id @default(uuid())
   employeeId             String
-  employee               Employee       @relation(fields: [employeeId], references: [id])
   type                   TypeContrat
   role                   Role
   heuresContrat          Float
@@ -56,6 +49,67 @@ model Contract {
   dateMiseAJour          DateTime       @updatedAt
   amendments             Amendment[]
   availabilities         Availability[]
+  employee               Employee       @relation(fields: [employeeId], references: [id])
+}
+
+model Amendment {
+  id            String      @id @default(uuid())
+  contractId    String
+  type          TypeAvenant
+  dateDebut     DateTime
+  dateFin       DateTime?
+  role          Role?
+  heuresContrat Float?
+  dateCreation  DateTime    @default(now())
+  dateMiseAJour DateTime    @updatedAt
+  contract      Contract    @relation(fields: [contractId], references: [id])
+}
+
+model Availability {
+  id            String   @id @default(uuid())
+  contractId    String
+  jour          Jour
+  plages        Json
+  dateCreation  DateTime @default(now())
+  dateMiseAJour DateTime @updatedAt
+  contract      Contract @relation(fields: [contractId], references: [id])
+}
+
+model TimeEntry {
+  id          String        @id @default(uuid())
+  employeeId  String
+  planningId  String?
+  date        DateTime
+  heureEntree String
+  heureSortie String
+  type        TypeTimeEntry
+  createdAt   DateTime      @default(now())
+  employee    Employee      @relation(fields: [employeeId], references: [id])
+}
+
+model Planning {
+  id        String   @id @default(uuid())
+  semaine   DateTime
+  label     String
+  createdAt DateTime @default(now())
+}
+
+model PayVariable {
+  id                String   @id @default(uuid())
+  employeeId        String
+  periodeDebut      DateTime
+  periodeFin        DateTime
+  heuresTravaillees Float
+  absences          Float
+  heuresSupp        Float
+  createdAt         DateTime @default(now())
+  employee          Employee @relation(fields: [employeeId], references: [id])
+}
+
+enum Sexe {
+  homme
+  femme
+  autre
 }
 
 enum TypeContrat {
@@ -76,32 +130,9 @@ enum StatutContrat {
   demission
 }
 
-model Amendment {
-  id            String      @id @default(uuid())
-  contractId    String
-  contract      Contract    @relation(fields: [contractId], references: [id])
-  type          TypeAvenant
-  dateDebut     DateTime
-  dateFin       DateTime?
-  role          Role?
-  heuresContrat Float?
-  dateCreation  DateTime    @default(now())
-  dateMiseAJour DateTime    @updatedAt
-}
-
 enum TypeAvenant {
   avenant
   modif_permanente
-}
-
-model Availability {
-  id            String   @id @default(uuid())
-  contractId    String
-  contract      Contract @relation(fields: [contractId], references: [id])
-  jour          Jour
-  plages        Json // Ex: [{"start": "09:00", "end": "13:00"}]
-  dateCreation  DateTime @default(now())
-  dateMiseAJour DateTime @updatedAt
 }
 
 enum Jour {
@@ -114,38 +145,7 @@ enum Jour {
   dimanche
 }
 
-model TimeEntry {
-  id          String        @id @default(uuid())
-  employeeId  String
-  employee    Employee      @relation(fields: [employeeId], references: [id])
-  planningId  String?
-  date        DateTime
-  heureEntree String // Stockage hh:mm
-  heureSortie String
-  type        TypeTimeEntry
-  createdAt   DateTime      @default(now())
-}
-
 enum TypeTimeEntry {
   planifie
   reel
-}
-
-model Planning {
-  id        String   @id @default(uuid())
-  semaine   DateTime // Premier jour de la semaine (ISO)
-  label     String
-  createdAt DateTime @default(now())
-}
-
-model PayVariable {
-  id                String   @id @default(uuid())
-  employeeId        String
-  employee          Employee @relation(fields: [employeeId], references: [id])
-  periodeDebut      DateTime
-  periodeFin        DateTime
-  heuresTravaillees Float
-  absences          Float
-  heuresSupp        Float
-  createdAt         DateTime @default(now())
 }
